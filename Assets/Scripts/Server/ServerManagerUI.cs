@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SFB;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -22,6 +23,8 @@ public class ServerManagerUI : MonoBehaviour
     [SerializeField] private HorizontalScrollSnap povScroller;
     [SerializeField] private List<Layout> layouts;
     [SerializeField] private Button nextButton;
+    [SerializeField] private Button pickSettingsFileButton;
+    [SerializeField] private TextMeshProUGUI pickSettingsFileButtonLabel;
     [SerializeField] private Button restartButton;
     [SerializeField] private TextMeshProUGUI connectedClientsLabel;
 
@@ -30,6 +33,9 @@ public class ServerManagerUI : MonoBehaviour
         layouts.Find(l => l.layoutId == GameManager.Singleton.layoutId).toggle.isOn = true;
         posScroller.StartingScreen = GameManager.Singleton.posId;
         povScroller.StartingScreen = GameManager.Singleton.povId;
+        pickSettingsFileButtonLabel.text = GameManager.Singleton.settingsPath == ""
+            ? "Pick settings file"
+            : GameManager.Singleton.settingsPath;
     }
 
     void Start()
@@ -55,10 +61,12 @@ public class ServerManagerUI : MonoBehaviour
             Layout layout = layouts.Find(l => l.toggle.isOn);
             int ringCount = layoutThumbs[layout.layoutId].ringCount;
             int targetCount = layoutThumbs[layout.layoutId].targetCount;
+            string path = pickSettingsFileButtonLabel.text;
 
             GameManager.Singleton.layoutId = layout.layoutId;
             GameManager.Singleton.posId = posScroller.CurrentPage;
             GameManager.Singleton.povId = povScroller.CurrentPage;
+            GameManager.Singleton.settingsPath = path;
 
             ServerManager.Singleton.StartEvaluation(
                 new(
@@ -67,8 +75,18 @@ public class ServerManagerUI : MonoBehaviour
                     GameManager.Singleton.povThumbs[povScroller.CurrentPage].name.Contains("Assisted"),
                     ringCount,
                     targetCount
-                )
+                ),
+                GameManager.Singleton.settingsPath == "Pick settings file" ? "" : GameManager.Singleton.settingsPath
             );
+        });
+
+        pickSettingsFileButton.onClick.AddListener(() =>
+        {
+            var path = StandaloneFileBrowser.OpenFilePanel("Open settings file", "", "json", false);
+            if (path.Length > 0)
+            {
+                pickSettingsFileButtonLabel.text = path[0];
+            }
         });
 
         SetConnectedClientsLabel();

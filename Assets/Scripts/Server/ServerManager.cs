@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 using System.IO;
 using System.Linq;
 using System.Collections;
+using SFB;
 
 public class ServerManager : NetworkBehaviour
 {
@@ -77,7 +78,7 @@ public class ServerManager : NetworkBehaviour
         }
     }
 
-    public void StartEvaluation(Condition condition)
+    public void StartEvaluation(Condition condition, string settingsPath)
     {
         if (!NetworkManager.Singleton.IsServer) return;
 
@@ -88,7 +89,6 @@ public class ServerManager : NetworkBehaviour
         };
 
         trialsLeft = condition.ringCount * condition.targetCount * 2;
-        // trialsLeft = 2;
 
         NetworkManager.SceneManager.LoadScene("Main", LoadSceneMode.Single);
         SocketManager.Singleton.LoadArMainScene();
@@ -101,6 +101,8 @@ public class ServerManager : NetworkBehaviour
             {
                 if (sceneName != "Main" || conditionResult.condition.ringCount == 0) return;
 
+                SetSettingsFile(settingsPath);
+
                 SpheresManager.Singleton.SpawnSpheres(
                     conditionResult.condition.ringCount, conditionResult.condition.targetCount
                 );
@@ -108,6 +110,23 @@ public class ServerManager : NetworkBehaviour
                 InitTrial();
             };
         }
+    }
+
+    private void SetSettingsFile(string settingsPath)
+    {
+        if (settingsPath == "") return;
+
+        string settingsData = File.ReadAllText(settingsPath);
+        ArSettings settings = JsonUtility.FromJson<ArSettings>(settingsData);
+
+        SpheresManager.Singleton.TARGET_SCALE = settings.targetScale;
+        SpheresManager.Singleton.RADIUS = settings.radius;
+        SpheresManager.Singleton.INITIAL_HEIGHT = settings.initialHeight;
+        SpheresManager.Singleton.RING_COUNT_GAP = new Dictionary<int, float>
+        {
+            { settings.ringCount_gaps[0].ringCount, settings.ringCount_gaps[0].gap },
+            { settings.ringCount_gaps[1].ringCount, settings.ringCount_gaps[1].gap },
+        };
     }
 
     private void InitTrial()
@@ -148,9 +167,10 @@ public class ServerManager : NetworkBehaviour
             int.Parse(actualAnswer.Item1.Split(";")[1]),
             conditionResult.condition.ringCount,
             conditionResult.condition.targetCount,
+            SpheresManager.Singleton.TARGET_SCALE,
             SpheresManager.Singleton.GetLowestRingOrigin(),
-            SpheresManager.RADIUS,
-            SpheresManager.RING_COUNT_GAP[conditionResult.condition.ringCount]
+            SpheresManager.Singleton.RADIUS,
+            SpheresManager.Singleton.RING_COUNT_GAP[conditionResult.condition.ringCount]
         ));
     }
 
@@ -201,7 +221,12 @@ public class ServerManager : NetworkBehaviour
         if (!NetworkManager.Singleton.IsServer) return;
 
         string data = JsonUtility.ToJson(conditionResult);
-        string path = $"D:/Studies/theses/{DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss")}.json";
+        string path = StandaloneFileBrowser.SaveFilePanel(
+            "Save Condition Result",
+            "",
+            DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"),
+            "json"
+        );
 
         File.CreateText(path).Dispose();
         File.WriteAllText(path, data);

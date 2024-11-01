@@ -22,7 +22,10 @@ public class SocketManager : MonoBehaviour
 
     public void StartServer()
     {
-        driver = NetworkDriver.Create();
+        var networkSettings = new NetworkSettings();
+        driver = driver.IsCreated ? driver : NetworkDriver.Create(networkSettings.WithNetworkConfigParameters(
+            disconnectTimeoutMS: 90000000
+        ));
 
         var endpoint = NetworkEndPoint.AnyIpv4;
         endpoint.Port = 9000;

@@ -1,0 +1,9 @@
+{
+  "targetScale": 0.15,
+  "initialHeight": 0.85,
+  "radius": 0.5,
+  "ringCount_gaps": [
+    { "ringCount": 3, "gap": 0.5 },
+    { "ringCount": 6, "gap": 0.25 }
+  ]
+}

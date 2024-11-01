@@ -11,6 +11,7 @@ public struct ArCondition
 	public int answerIndex;
 	public int ringCount;
 	public int targetCount;
+	public float targetScale;
 
 	public Vector3 lowestRingOrigin;
 	public float radius;
@@ -19,7 +20,8 @@ public struct ArCondition
 	public ArCondition(
 		string pos, string pov, bool assisted,
 		int answerRing, int answerIndex,
-		int ringCount, int targetCount, Vector3 lowestRingOrigin, float radius, float gap
+		int ringCount, int targetCount, float targetScale,
+		Vector3 lowestRingOrigin, float radius, float gap
 	)
 	{
 		this.pos = pos;
@@ -29,6 +31,7 @@ public struct ArCondition
 		this.answerIndex = answerIndex;
 		this.ringCount = ringCount;
 		this.targetCount = targetCount;
+		this.targetScale = targetScale;
 		this.lowestRingOrigin = lowestRingOrigin;
 		this.radius = radius;
 		this.gap = gap;

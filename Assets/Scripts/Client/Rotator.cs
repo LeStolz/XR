@@ -1,9 +1,12 @@
-﻿using UnityEngine;
+﻿using Unity.Netcode;
+using UnityEngine;
 
-public class Rotator : MonoBehaviour
+public class Rotator : NetworkBehaviour
 {
     [SerializeField] private Transform target;
+    [SerializeField] private Camera rotator;
     [SerializeField] private new Camera camera;
+
     private float radius;
     private Vector3 initialPosition;
     private Quaternion initialRotation;
@@ -18,19 +21,6 @@ public class Rotator : MonoBehaviour
     void OnMouseUp()
     {
         isDragging = false;
-    }
-
-    void Start()
-    {
-        initialPosition = transform.position;
-        initialRotation = transform.rotation;
-
-        radius = Vector2.Distance(
-            new(target.position.x, target.position.z),
-            new(transform.position.x, transform.position.z)
-        );
-
-        started = true;
     }
 
     void Update()
@@ -59,5 +49,29 @@ public class Rotator : MonoBehaviour
         if (!started) return;
 
         transform.SetPositionAndRotation(initialPosition, initialRotation);
+    }
+
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    public void SetInitialPositionRpc(float newRadius, float newInitialHeight)
+    {
+        radius = newRadius;
+
+        var currentAngle = 360 * Mathf.Deg2Rad;
+        transform.SetPositionAndRotation(new Vector3(
+            target.position.x + radius * Mathf.Cos(currentAngle),
+            transform.position.y,
+            target.position.z + radius * Mathf.Sin(currentAngle)
+        ), Quaternion.Euler(0, 180 - currentAngle * Mathf.Rad2Deg, 0));
+
+        rotator.transform.position = new(
+            rotator.transform.position.x,
+            newInitialHeight,
+            rotator.transform.position.z
+        );
+
+        initialPosition = transform.position;
+        initialRotation = transform.rotation;
+
+        started = true;
     }
 }

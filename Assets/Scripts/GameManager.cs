@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Singleton { get; private set; }
 
+    public string settingsPath = "";
     public string playerId = "";
     public string playerSeat = "";
     public string serverIp = "";

@@ -6,12 +6,12 @@ public class SphereSelector : NetworkBehaviour
     void OnMouseDown()
     {
         SpheresManager.Singleton.SelectSphere(gameObject);
-        Debug.Log(gameObject.name);
     }
 
     [Rpc(SendTo.Everyone, RequireOwnership = false)]
-    public void SetNameRpc(string name)
+    public void SetPropertiesRpc(string name, float scale)
     {
         gameObject.name = name;
+        transform.localScale = new Vector3(scale, scale, scale);
     }
 }

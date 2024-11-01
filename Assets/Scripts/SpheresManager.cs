@@ -5,16 +5,17 @@ using UnityEngine;
 
 public class SpheresManager : NetworkBehaviour
 {
-    public const float RADIUS = 3f;
-    public float INITIAL_HEIGHT = 3f;
-    public static readonly Dictionary<int, float> RING_COUNT_GAP = new() {
-        { 3, 2f },
-        { 6, 1f }
+    public float RADIUS = 0.5f;
+    public float INITIAL_HEIGHT = 0.85f;
+    public Dictionary<int, float> RING_COUNT_GAP = new() {
+        { 3, 0.5f },
+        { 6, 0.25f }
     };
+    public float TARGET_SCALE = 0.15f;
 
     public static SpheresManager Singleton { get; private set; }
 
-    [SerializeField] private new Camera camera;
+    [SerializeField] private new GameObject camera;
     [SerializeField] private GameObject spherePrefab;
     [SerializeField] private Material defaultSphereMaterial;
     [SerializeField] private Material selectedSphereMaterial;
@@ -35,15 +36,6 @@ public class SpheresManager : NetworkBehaviour
         }
 
         Singleton = this;
-        DontDestroyOnLoad(gameObject);
-    }
-
-    void Start()
-    {
-        if (NetworkManager.Singleton.IsServer)
-        {
-            INITIAL_HEIGHT = camera.transform.position.y;
-        }
     }
 
     private void ClearSpheres()
@@ -81,6 +73,14 @@ public class SpheresManager : NetworkBehaviour
 
     public void SpawnSpheres(int ringCount, int targetCount)
     {
+        if (NetworkManager.Singleton.IsServer)
+        {
+            camera.GetComponent<Rotator>().SetInitialPositionRpc(
+                RADIUS,
+                INITIAL_HEIGHT
+            );
+        }
+
         ClearSpheres();
 
         startHeight = INITIAL_HEIGHT - RING_COUNT_GAP[ringCount] * (ringCount - 1) / 2;
@@ -100,7 +100,7 @@ public class SpheresManager : NetworkBehaviour
                 randomSpheres.Add(sphere);
                 randomSpheres.Add(sphere);
                 sphere.GetComponent<NetworkObject>().Spawn(true);
-                sphere.GetComponent<SphereSelector>().SetNameRpc($"{ring};{i}");
+                sphere.GetComponent<SphereSelector>().SetPropertiesRpc($"{ring};{i}", TARGET_SCALE);
             }
         }
 
@@ -119,6 +119,7 @@ public class SpheresManager : NetworkBehaviour
             randomSpheres[randomSpheresIndex].name,
             randomSpheres[randomSpheresIndex].transform.position
         );
+        SelectSphere(randomSpheres[randomSpheresIndex]);
         randomSpheresIndex++;
 
         return sphere;
