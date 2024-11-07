@@ -1,9 +1,10 @@
 {
-  "targetScale": 0.15,
-  "initialHeight": 0.85,
-  "radius": 0.5,
-  "ringCount_gaps": [
-    { "ringCount": 3, "gap": 0.5 },
-    { "ringCount": 6, "gap": 0.25 }
+  "initialHeight": 1.0,
+  "radius": 0.65,
+  "conditionalDimensions": [
+    { "ringCount": 3, "targetCount": 4, "gap": 0.5, "scale": 0.15 },
+    { "ringCount": 3, "targetCount": 8, "gap": 0.5, "scale": 0.1 },
+    { "ringCount": 6, "targetCount": 4, "gap": 0.25, "scale": 0.15 },
+    { "ringCount": 6, "targetCount": 8, "gap": 0.25, "scale": 0.1 }
   ]
 }

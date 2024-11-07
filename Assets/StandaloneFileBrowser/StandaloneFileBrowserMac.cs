@@ -5,40 +5,40 @@ using System.Runtime.InteropServices;
 
 namespace SFB {
     public class StandaloneFileBrowserMac : IStandaloneFileBrowser {
-        private static Action<string[]> _openFileCb;
-        private static Action<string[]> _openFolderCb;
-        private static Action<string> _saveFileCb;
+        static Action<string[]> _openFileCb;
+        static Action<string[]> _openFolderCb;
+        static Action<string> _saveFileCb;
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate void AsyncCallback(string path);
 
         [AOT.MonoPInvokeCallback(typeof(AsyncCallback))]
-        private static void openFileCb(string result) {
+        static void openFileCb(string result) {
             _openFileCb.Invoke(result.Split((char)28));
         }
 
         [AOT.MonoPInvokeCallback(typeof(AsyncCallback))]
-        private static void openFolderCb(string result) {
+        static void openFolderCb(string result) {
             _openFolderCb.Invoke(result.Split((char)28));
         }
 
         [AOT.MonoPInvokeCallback(typeof(AsyncCallback))]
-        private static void saveFileCb(string result) {
+        static void saveFileCb(string result) {
             _saveFileCb.Invoke(result);
         }
 
         [DllImport("StandaloneFileBrowser")]
-        private static extern IntPtr DialogOpenFilePanel(string title, string directory, string extension, bool multiselect);
+        static extern IntPtr DialogOpenFilePanel(string title, string directory, string extension, bool multiselect);
         [DllImport("StandaloneFileBrowser")]
-        private static extern void DialogOpenFilePanelAsync(string title, string directory, string extension, bool multiselect, AsyncCallback callback);
+        static extern void DialogOpenFilePanelAsync(string title, string directory, string extension, bool multiselect, AsyncCallback callback);
         [DllImport("StandaloneFileBrowser")]
-        private static extern IntPtr DialogOpenFolderPanel(string title, string directory, bool multiselect);
+        static extern IntPtr DialogOpenFolderPanel(string title, string directory, bool multiselect);
         [DllImport("StandaloneFileBrowser")]
-        private static extern void DialogOpenFolderPanelAsync(string title, string directory, bool multiselect, AsyncCallback callback);
+        static extern void DialogOpenFolderPanelAsync(string title, string directory, bool multiselect, AsyncCallback callback);
         [DllImport("StandaloneFileBrowser")]
-        private static extern IntPtr DialogSaveFilePanel(string title, string directory, string defaultName, string extension);
+        static extern IntPtr DialogSaveFilePanel(string title, string directory, string defaultName, string extension);
         [DllImport("StandaloneFileBrowser")]
-        private static extern void DialogSaveFilePanelAsync(string title, string directory, string defaultName, string extension, AsyncCallback callback);
+        static extern void DialogSaveFilePanelAsync(string title, string directory, string defaultName, string extension, AsyncCallback callback);
 
         public string[] OpenFilePanel(string title, string directory, ExtensionFilter[] extensions, bool multiselect) {
             var paths = Marshal.PtrToStringAnsi(DialogOpenFilePanel(
@@ -94,7 +94,7 @@ namespace SFB {
                 saveFileCb);
         }
 
-        private static string GetFilterFromFileExtensionList(ExtensionFilter[] extensions) {
+        static string GetFilterFromFileExtensionList(ExtensionFilter[] extensions) {
             if (extensions == null) {
                 return "";
             }

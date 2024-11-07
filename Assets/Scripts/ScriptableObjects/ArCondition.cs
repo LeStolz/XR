@@ -11,8 +11,8 @@ public struct ArCondition
 	public int answerIndex;
 	public int ringCount;
 	public int targetCount;
-	public float targetScale;
 
+	public float targetScale;
 	public Vector3 lowestRingOrigin;
 	public float radius;
 	public float gap;

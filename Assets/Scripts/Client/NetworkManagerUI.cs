@@ -4,10 +4,10 @@ using UnityEngine.UI;
 
 public class NetworkManagerUI : MonoBehaviour
 {
-    [SerializeField] private Button serverButton;
-    [SerializeField] private Button spectatorButton;
-    [SerializeField] private GameObject registerUI;
-    [SerializeField] private GameObject serverManagerUI;
+    [SerializeField] Button serverButton;
+    [SerializeField] Button spectatorButton;
+    [SerializeField] GameObject registerUI;
+    [SerializeField] GameObject serverManagerUI;
 
     void Start()
     {
@@ -31,7 +31,6 @@ public class NetworkManagerUI : MonoBehaviour
     {
         if (start)
         {
-            NetworkManager.Singleton.StartServer();
             ServerManager.Singleton.StartServer();
         }
 

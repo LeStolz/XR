@@ -6,8 +6,8 @@ using NetworkEvent = Unity.Networking.Transport.NetworkEvent;
 
 public class ServerConnectionManager : MonoBehaviour
 {
-	static public ServerConnectionManager Singleton { get; private set; }
-	public bool Connected { get; private set; } = false;
+	static public ServerConnectionManager Singleton { get; set; }
+	public bool Connected { get; set; } = false;
 	public event Action OnConnected;
 
 	NetworkDriver driver;

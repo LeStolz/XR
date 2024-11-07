@@ -8,28 +8,28 @@ using UnityEngine;
 namespace SFB {
 
     public class StandaloneFileBrowserLinux : IStandaloneFileBrowser {
-        
-        private static Action<string[]> _openFileCb;
-        private static Action<string[]> _openFolderCb;
-        private static Action<string> _saveFileCb;
+
+        static Action<string[]> _openFileCb;
+        static Action<string[]> _openFolderCb;
+        static Action<string> _saveFileCb;
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate void AsyncCallback(string path);
 
         [DllImport("StandaloneFileBrowser")]
-        private static extern void DialogInit();
+        static extern void DialogInit();
         [DllImport("StandaloneFileBrowser")]
-        private static extern IntPtr DialogOpenFilePanel(string title, string directory, string extension, bool multiselect);
+        static extern IntPtr DialogOpenFilePanel(string title, string directory, string extension, bool multiselect);
         [DllImport("StandaloneFileBrowser")]
-        private static extern void DialogOpenFilePanelAsync(string title, string directory, string extension, bool multiselect, AsyncCallback callback);
+        static extern void DialogOpenFilePanelAsync(string title, string directory, string extension, bool multiselect, AsyncCallback callback);
         [DllImport("StandaloneFileBrowser")]
-        private static extern IntPtr DialogOpenFolderPanel(string title, string directory, bool multiselect);
+        static extern IntPtr DialogOpenFolderPanel(string title, string directory, bool multiselect);
         [DllImport("StandaloneFileBrowser")]
-        private static extern void DialogOpenFolderPanelAsync(string title, string directory, bool multiselect, AsyncCallback callback);
+        static extern void DialogOpenFolderPanelAsync(string title, string directory, bool multiselect, AsyncCallback callback);
         [DllImport("StandaloneFileBrowser")]
-        private static extern IntPtr DialogSaveFilePanel(string title, string directory, string defaultName, string extension);
+        static extern IntPtr DialogSaveFilePanel(string title, string directory, string defaultName, string extension);
         [DllImport("StandaloneFileBrowser")]
-        private static extern void DialogSaveFilePanelAsync(string title, string directory, string defaultName, string extension, AsyncCallback callback);
+        static extern void DialogSaveFilePanelAsync(string title, string directory, string defaultName, string extension, AsyncCallback callback);
 
         public StandaloneFileBrowserLinux()
         {
@@ -90,7 +90,7 @@ namespace SFB {
                 (string result) => { _saveFileCb.Invoke(result); });
         }
 
-        private static string GetFilterFromFileExtensionList(ExtensionFilter[] extensions) {
+        static string GetFilterFromFileExtensionList(ExtensionFilter[] extensions) {
             if (extensions == null) {
                 return "";
             }

@@ -19,7 +19,7 @@ public struct LayoutThumbnail
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Singleton { get; private set; }
+    public static GameManager Singleton { get; set; }
 
     public string settingsPath = "";
     public string playerId = "";
@@ -34,7 +34,7 @@ public class GameManager : MonoBehaviour
     public List<Thumbnail> povThumbs;
     public List<LayoutThumbnail> layoutThumbs;
 
-    private void Awake()
+    void Awake()
     {
         if (Singleton != null)
         {

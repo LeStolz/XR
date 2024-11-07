@@ -7,18 +7,19 @@ using UnityEngine.EventSystems;
 using SFB;
 
 [RequireComponent(typeof(Button))]
-public class CanvasSampleSaveFileText : MonoBehaviour, IPointerDownHandler {
+public class CanvasSampleSaveFileText : MonoBehaviour, IPointerDownHandler
+{
     public Text output;
 
     // Sample text data
-    private string _data = "Example text created by StandaloneFileBrowser";
+    string _data = "Example text created by StandaloneFileBrowser";
 
 #if UNITY_WEBGL && !UNITY_EDITOR
     //
     // WebGL
     //
     [DllImport("__Internal")]
-    private static extern void DownloadFile(string gameObjectName, string methodName, string filename, byte[] byteArray, int byteArraySize);
+    static extern void DownloadFile(string gameObjectName, string methodName, string filename, byte[] byteArray, int byteArraySize);
 
     // Broser plugin should be called in OnPointerDown.
     public void OnPointerDown(PointerEventData eventData) {
@@ -37,14 +38,17 @@ public class CanvasSampleSaveFileText : MonoBehaviour, IPointerDownHandler {
     public void OnPointerDown(PointerEventData eventData) { }
 
     // Listen OnClick event in standlone builds
-    void Start() {
+    void Start()
+    {
         var button = GetComponent<Button>();
         button.onClick.AddListener(OnClick);
     }
 
-    public void OnClick() {
+    public void OnClick()
+    {
         var path = StandaloneFileBrowser.SaveFilePanel("Title", "", "sample", "txt");
-        if (!string.IsNullOrEmpty(path)) {
+        if (!string.IsNullOrEmpty(path))
+        {
             File.WriteAllText(path, _data);
         }
     }

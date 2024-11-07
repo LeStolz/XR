@@ -2,10 +2,11 @@ using UnityEngine;
 
 public class SquareCamera : MonoBehaviour
 {
-    [SerializeField] private bool anchorLeft;
-    [SerializeField] private float y;
-    [SerializeField] private float width;
-    [SerializeField] private new Camera camera;
+    [SerializeField] bool anchorLeft;
+    [SerializeField] float y;
+    [SerializeField] float width;
+    [SerializeField] float height;
+    [SerializeField] new Camera camera;
 
     void Start()
     {
@@ -16,7 +17,7 @@ public class SquareCamera : MonoBehaviour
     {
         int screenWidth = Screen.width;
         int screenHeight = Screen.height;
-        float height = width * screenWidth / screenHeight;
+        float height = this.height > 0 ? this.height : width * screenWidth / screenHeight;
         float x = anchorLeft ? 0.03f : 1 - width - 0.03f;
 
         camera.rect = new Rect(x, y, width, height);

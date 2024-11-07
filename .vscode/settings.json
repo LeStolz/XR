@@ -52,5 +52,13 @@
     "Temp/": true
   },
   "dotnet.defaultSolution": "XR.sln",
-  "cSpell.words": ["Behaviour", "Dont", "Mathf", "Netcode", "UGUI"]
+  "cSpell.words": [
+    "Behaviour",
+    "Dont",
+    "interactable",
+    "Mathf",
+    "Netcode",
+    "Slerp",
+    "UGUI"
+  ]
 }

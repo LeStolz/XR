@@ -5,15 +5,17 @@ using UnityEngine.UI;
 
 public class ConfidenceUI : MonoBehaviour
 {
-    [SerializeField] private Button submitButton;
-    [SerializeField] private TextMeshProUGUI submitButtonText;
-    [SerializeField] private List<Button> buttons;
-    [SerializeField] private Sprite defaultSprite;
-    [SerializeField] private Sprite selectedSprite;
-    public int SelectedButtonIndex { get; private set; } = -1;
+    [SerializeField] Button submitButton;
+    [SerializeField] TextMeshProUGUI submitButtonText;
+    [SerializeField] List<Button> buttons;
+    [SerializeField] Sprite defaultSprite;
+    [SerializeField] Sprite selectedSprite;
+    int selectedButtonIndex = -1;
 
     void Start()
     {
+        gameObject.SetActive(false);
+
         for (int i = 0; i < buttons.Count; i++)
         {
             var currentButton = buttons[i];
@@ -27,31 +29,54 @@ public class ConfidenceUI : MonoBehaviour
                 }
 
                 currentButton.image.sprite = selectedSprite;
-                SelectedButtonIndex = currentIndex;
+                selectedButtonIndex = currentIndex;
             });
         }
 
         submitButton.onClick.AddListener(() =>
         {
-            if (SelectedButtonIndex == -1) return;
+            if (selectedButtonIndex == -1) return;
 
             submitButtonText.text = "Syncing...";
             submitButton.interactable = false;
 
-            ClientManager.Singleton.SubmitAnswer();
+            ClientManager.Singleton.SubmitAnswer(selectedButtonIndex);
         });
+
+        ClientManager.Singleton.OnTrialInit += OnTrialInit;
+        ClientManager.Singleton.OnConditionEnd += OnConditionEnd;
+        ClientManager.Singleton.OnConfidenceSelect += OnConfidenceSelect;
     }
 
-    public void Reset()
+    void OnTrialInit()
     {
+        gameObject.SetActive(false);
+
         foreach (Button button in buttons)
         {
             button.image.sprite = defaultSprite;
         }
 
-        SelectedButtonIndex = -1;
+        selectedButtonIndex = -1;
 
         submitButtonText.text = "Submit";
         submitButton.interactable = true;
+    }
+
+    void OnConditionEnd()
+    {
+        gameObject.SetActive(false);
+    }
+
+    void OnConfidenceSelect()
+    {
+        gameObject.SetActive(true);
+    }
+
+    void OnDestroy()
+    {
+        ClientManager.Singleton.OnTrialInit -= OnTrialInit;
+        ClientManager.Singleton.OnConditionEnd -= OnConditionEnd;
+        ClientManager.Singleton.OnConfidenceSelect -= OnConfidenceSelect;
     }
 }

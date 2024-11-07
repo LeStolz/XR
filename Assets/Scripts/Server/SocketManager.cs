@@ -30,12 +30,14 @@ public class SocketManager : MonoBehaviour
         var endpoint = NetworkEndPoint.AnyIpv4;
         endpoint.Port = 9000;
 
-        if (driver.Bind(endpoint) != 0)
-            Debug.LogError("Failed to start server");
-        else
-            driver.Listen();
+        driver.Bind(endpoint);
+        driver.Listen();
 
         connections = new NativeList<NetworkConnection>(16, Allocator.Persistent);
+
+        ServerManager.Singleton.OnConditionEnd += LoadArConnectScene;
+        ServerManager.Singleton.OnConditionStart += LoadArMainScene;
+        ServerManager.Singleton.OnTrialInit += InitArTrial;
     }
 
     void Update()
@@ -68,8 +70,6 @@ public class SocketManager : MonoBehaviour
                 {
                     FixedString128Bytes func = stream.ReadFixedString128();
 
-                    Debug.Log(func);
-
                     if (func.Equals("RegisterClientRpc AR"))
                     {
                         ServerManager.Singleton.RegisterClientRpc("AR");
@@ -92,7 +92,7 @@ public class SocketManager : MonoBehaviour
         }
     }
 
-    public void LoadArConnectScene()
+    void LoadArConnectScene()
     {
         for (int i = 0; i < connections.Length; i++)
         {
@@ -102,7 +102,7 @@ public class SocketManager : MonoBehaviour
         }
     }
 
-    public void LoadArMainScene()
+    void LoadArMainScene()
     {
         for (int i = 0; i < connections.Length; i++)
         {
@@ -112,7 +112,7 @@ public class SocketManager : MonoBehaviour
         }
     }
 
-    public void InitArTrial(ArCondition arCondition)
+    void InitArTrial(ArCondition arCondition)
     {
         for (int i = 0; i < connections.Length; i++)
         {
@@ -141,5 +141,9 @@ public class SocketManager : MonoBehaviour
             driver.Dispose();
             connections.Dispose();
         }
+
+        ServerManager.Singleton.OnConditionEnd -= LoadArConnectScene;
+        ServerManager.Singleton.OnConditionStart -= LoadArMainScene;
+        ServerManager.Singleton.OnTrialInit -= InitArTrial;
     }
 }

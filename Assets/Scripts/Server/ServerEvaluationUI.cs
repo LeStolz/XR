@@ -1,21 +1,20 @@
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class ServerEvaluationUI : MonoBehaviour
 {
-    [SerializeField] private Button settingsButton;
-    [SerializeField] private Button configButton;
-    [SerializeField] private Button closeButton;
-    [SerializeField] private GameObject settings;
-    [SerializeField] private GameObject pos;
-    [SerializeField] private GameObject pov;
-    [SerializeField] private GameObject layout;
-    [SerializeField] private TextMeshProUGUI posText;
-    [SerializeField] private TextMeshProUGUI povText;
-    [SerializeField] private TextMeshProUGUI layoutText;
+    [SerializeField] Button settingsButton;
+    [SerializeField] Button configButton;
+    [SerializeField] Button closeButton;
+    [SerializeField] GameObject settings;
+    [SerializeField] GameObject pos;
+    [SerializeField] GameObject pov;
+    [SerializeField] GameObject layout;
+    [SerializeField] TextMeshProUGUI posText;
+    [SerializeField] TextMeshProUGUI povText;
+    [SerializeField] TextMeshProUGUI layoutText;
 
     void Start()
     {
@@ -34,8 +33,7 @@ public class ServerEvaluationUI : MonoBehaviour
 
         configButton.onClick.AddListener(() =>
         {
-            SocketManager.Singleton.LoadArConnectScene();
-            NetworkManager.Singleton.SceneManager.LoadScene("Connect", LoadSceneMode.Single);
+            StartCoroutine(ServerManager.Singleton.EndCondition(false));
         });
 
         var posThumb = GameManager.Singleton.posThumbs[GameManager.Singleton.posId];

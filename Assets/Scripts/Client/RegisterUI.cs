@@ -7,11 +7,11 @@ using UnityEngine.UI;
 
 public class RegisterUI : MonoBehaviour
 {
-    [SerializeField] private TMP_InputField serverIpTextField;
-    [SerializeField] private TMP_InputField idTextField;
-    [SerializeField] private TMP_Dropdown seatDropdown;
-    [SerializeField] private Button readyButton;
-    [SerializeField] private TextMeshProUGUI readyButtonText;
+    [SerializeField] TMP_InputField serverIpTextField;
+    [SerializeField] TMP_InputField idTextField;
+    [SerializeField] TMP_Dropdown seatDropdown;
+    [SerializeField] Button readyButton;
+    [SerializeField] TextMeshProUGUI readyButtonText;
 
     IEnumerator RegisterClient()
     {
@@ -60,6 +60,7 @@ public class RegisterUI : MonoBehaviour
         }
 
         readyButton.onClick.AddListener(Ready);
+
         ServerConnectionManager.Singleton.OnConnected += () =>
         {
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetConnectionData(

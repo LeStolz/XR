@@ -20,11 +20,14 @@ public class ServerManager : NetworkBehaviour
     } = new Dictionary<ulong, string>();
     public event Action OnClientConnected;
     public event Action OnClientDisconnected;
+    public event Action OnConditionEnd;
+    public event Action<(int RingCount, int TargetCount)> OnConditionStart;
+    public event Action<ArCondition> OnTrialInit;
 
-    private ConditionResult conditionResult;
-    private TrialResult currentTrialResult;
-    private int trialsLeft = 0;
-    private bool setSceneManagerOnLoadComplete = false;
+    ConditionResult conditionResult;
+    TrialResult currentTrialResult;
+    int trialsLeft = 0;
+    bool setSceneManagerOnLoadComplete = false;
 
     void Awake()
     {
@@ -40,6 +43,8 @@ public class ServerManager : NetworkBehaviour
 
     public void StartServer()
     {
+        NetworkManager.Singleton.StartServer();
+
         if (!NetworkManager.Singleton.IsServer)
         {
             return;
@@ -78,7 +83,7 @@ public class ServerManager : NetworkBehaviour
         }
     }
 
-    public void StartEvaluation(Condition condition, string settingsPath)
+    public void StartCondition(Condition condition, string settingsPath)
     {
         if (!NetworkManager.Singleton.IsServer) return;
 
@@ -91,7 +96,6 @@ public class ServerManager : NetworkBehaviour
         trialsLeft = condition.ringCount * condition.targetCount * 2;
 
         NetworkManager.SceneManager.LoadScene("Main", LoadSceneMode.Single);
-        SocketManager.Singleton.LoadArMainScene();
 
         if (!setSceneManagerOnLoadComplete)
         {
@@ -99,12 +103,12 @@ public class ServerManager : NetworkBehaviour
 
             NetworkManager.SceneManager.OnLoadEventCompleted += (sceneName, loadSceneMode, _, _) =>
             {
-                if (sceneName != "Main" || conditionResult.condition.ringCount == 0) return;
+                if (sceneName != "Main") return;
 
                 SetSettingsFile(settingsPath);
 
-                SpheresManager.Singleton.SpawnSpheres(
-                    conditionResult.condition.ringCount, conditionResult.condition.targetCount
+                OnConditionStart?.Invoke(
+                    (conditionResult.condition.ringCount, conditionResult.condition.targetCount)
                 );
 
                 InitTrial();
@@ -112,24 +116,23 @@ public class ServerManager : NetworkBehaviour
         }
     }
 
-    private void SetSettingsFile(string settingsPath)
+    void SetSettingsFile(string settingsPath)
     {
         if (settingsPath == "") return;
 
         string settingsData = File.ReadAllText(settingsPath);
-        ArSettings settings = JsonUtility.FromJson<ArSettings>(settingsData);
 
-        SpheresManager.Singleton.TARGET_SCALE = settings.targetScale;
-        SpheresManager.Singleton.RADIUS = settings.radius;
-        SpheresManager.Singleton.INITIAL_HEIGHT = settings.initialHeight;
-        SpheresManager.Singleton.RING_COUNT_GAP = new Dictionary<int, float>
-        {
-            { settings.ringCount_gaps[0].ringCount, settings.ringCount_gaps[0].gap },
-            { settings.ringCount_gaps[1].ringCount, settings.ringCount_gaps[1].gap },
-        };
+        SpheresManager.Singleton.layoutDimensionsServer = JsonUtility.FromJson<LayoutDimensions>(settingsData);
     }
 
-    private void InitTrial()
+    public IEnumerator EndCondition(bool wait = true)
+    {
+        OnConditionEnd?.Invoke();
+        if (wait) yield return new WaitForSeconds(5);
+        NetworkManager.SceneManager.LoadScene("Connect", LoadSceneMode.Single);
+    }
+
+    void InitTrial()
     {
         if (!NetworkManager.Singleton.IsServer) return;
 
@@ -137,15 +140,7 @@ public class ServerManager : NetworkBehaviour
         {
             SaveConditionResult();
             ClientManager.Singleton.EndConditionRpc();
-
-            IEnumerator LoadConnectScene()
-            {
-                SocketManager.Singleton.LoadArConnectScene();
-                yield return new WaitForSeconds(5);
-                NetworkManager.SceneManager.LoadScene("Connect", LoadSceneMode.Single);
-            }
-
-            StartCoroutine(LoadConnectScene());
+            StartCoroutine(EndCondition());
             return;
         }
 
@@ -158,8 +153,7 @@ public class ServerManager : NetworkBehaviour
             actualAnswer.Item2
         );
 
-        ClientManager.Singleton.InitTrialRpc(actualAnswer.Item1);
-        SocketManager.Singleton.InitArTrial(new(
+        OnTrialInit?.Invoke(new(
             conditionResult.condition.pos,
             conditionResult.condition.pov,
             conditionResult.condition.assisted,
@@ -167,10 +161,18 @@ public class ServerManager : NetworkBehaviour
             int.Parse(actualAnswer.Item1.Split(";")[1]),
             conditionResult.condition.ringCount,
             conditionResult.condition.targetCount,
-            SpheresManager.Singleton.TARGET_SCALE,
+            SpheresManager.Singleton.layoutDimensionsServer.conditionalDimensions.Find(
+                cd =>
+                    cd.ringCount == conditionResult.condition.ringCount &&
+                    cd.targetCount == conditionResult.condition.targetCount
+            ).scale,
             SpheresManager.Singleton.GetLowestRingOrigin(),
-            SpheresManager.Singleton.RADIUS,
-            SpheresManager.Singleton.RING_COUNT_GAP[conditionResult.condition.ringCount]
+            SpheresManager.Singleton.layoutDimensionsServer.radius,
+            SpheresManager.Singleton.layoutDimensionsServer.conditionalDimensions.Find(
+                cd =>
+                    cd.ringCount == conditionResult.condition.ringCount &&
+                    cd.targetCount == conditionResult.condition.targetCount
+            ).gap
         ));
     }
 
@@ -216,7 +218,7 @@ public class ServerManager : NetworkBehaviour
         }
     }
 
-    public void SaveConditionResult()
+    void SaveConditionResult()
     {
         if (!NetworkManager.Singleton.IsServer) return;
 

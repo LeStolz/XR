@@ -17,16 +17,16 @@ struct Layout
 
 public class ServerManagerUI : MonoBehaviour
 {
-    [SerializeField] private GameObject conditionScene;
-    [SerializeField] private GameObject layoutScene;
-    [SerializeField] private HorizontalScrollSnap posScroller;
-    [SerializeField] private HorizontalScrollSnap povScroller;
-    [SerializeField] private List<Layout> layouts;
-    [SerializeField] private Button nextButton;
-    [SerializeField] private Button pickSettingsFileButton;
-    [SerializeField] private TextMeshProUGUI pickSettingsFileButtonLabel;
-    [SerializeField] private Button restartButton;
-    [SerializeField] private TextMeshProUGUI connectedClientsLabel;
+    [SerializeField] GameObject conditionScene;
+    [SerializeField] GameObject layoutScene;
+    [SerializeField] HorizontalScrollSnap posScroller;
+    [SerializeField] HorizontalScrollSnap povScroller;
+    [SerializeField] List<Layout> layouts;
+    [SerializeField] Button nextButton;
+    [SerializeField] Button pickSettingsFileButton;
+    [SerializeField] TextMeshProUGUI pickSettingsFileButtonLabel;
+    [SerializeField] Button restartButton;
+    [SerializeField] TextMeshProUGUI connectedClientsLabel;
 
     void Awake()
     {
@@ -68,7 +68,7 @@ public class ServerManagerUI : MonoBehaviour
             GameManager.Singleton.povId = povScroller.CurrentPage;
             GameManager.Singleton.settingsPath = path;
 
-            ServerManager.Singleton.StartEvaluation(
+            ServerManager.Singleton.StartCondition(
                 new(
                     GameManager.Singleton.posThumbs[posScroller.CurrentPage].name,
                     GameManager.Singleton.povThumbs[povScroller.CurrentPage].name.Split(" - ")[0],
@@ -98,5 +98,11 @@ public class ServerManagerUI : MonoBehaviour
     {
         var spectatorIds = ServerManager.Singleton.ClientId_SpectatorId.Values;
         connectedClientsLabel.text = $"Connected clients:\n{spectatorIds.Aggregate("", (acc, id) => acc + id + "\n")}";
+    }
+
+    void OnDestroy()
+    {
+        ServerManager.Singleton.OnClientConnected -= SetConnectedClientsLabel;
+        ServerManager.Singleton.OnClientDisconnected -= SetConnectedClientsLabel;
     }
 }
