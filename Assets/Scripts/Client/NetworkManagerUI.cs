@@ -1,11 +1,13 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class NetworkManagerUI : MonoBehaviour
 {
     [SerializeField] Button serverButton;
     [SerializeField] Button spectatorButton;
+    [SerializeField] Button arButton;
     [SerializeField] GameObject registerUI;
     [SerializeField] GameObject serverManagerUI;
 
@@ -25,6 +27,7 @@ public class NetworkManagerUI : MonoBehaviour
 
         serverButton.onClick.AddListener(() => InitServer());
         spectatorButton.onClick.AddListener(() => InitClient(""));
+        arButton.onClick.AddListener(() => InitClient("AR"));
     }
 
     void InitServer(bool start = true)
@@ -41,6 +44,12 @@ public class NetworkManagerUI : MonoBehaviour
 
     void InitClient(string id, bool start = true)
     {
+        if (id == "AR")
+        {
+            SceneManager.LoadScene("AR");
+            return;
+        }
+
         gameObject.SetActive(false);
         registerUI.SetActive(true);
 

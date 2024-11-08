@@ -38,7 +38,6 @@ public class SpheresManager : NetworkBehaviour
     {
         rotator.GetComponent<Rotator>().OnRotate += OnRotate;
         ClientManager.Singleton.OnTrialInit += ResetSpheres;
-        ServerManager.Singleton.OnConditionStart += SpawnSpheres;
     }
 
     void OnRotate(float snapAngle)
@@ -64,7 +63,7 @@ public class SpheresManager : NetworkBehaviour
                 : defaultSphereMaterial;
 
             sphere.transform.localScale = isFocused
-                ? dimensions.scale * 1.8f * Vector3.one
+                ? dimensions.scale * 1.6f * Vector3.one
                 : dimensions.scale * Vector3.one;
         }
 
@@ -107,7 +106,7 @@ public class SpheresManager : NetworkBehaviour
         }
     }
 
-    void SpawnSpheres((int RingCount, int TargetCount) counts)
+    public void SpawnSpheres((int RingCount, int TargetCount) counts)
     {
         int ringCount = counts.RingCount;
         int targetCount = counts.TargetCount;

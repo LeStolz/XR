@@ -103,11 +103,18 @@ public class ServerManager : NetworkBehaviour
 
             NetworkManager.SceneManager.OnLoadEventCompleted += (sceneName, loadSceneMode, _, _) =>
             {
-                if (sceneName != "Main") return;
+                if (
+                    sceneName != "Main" ||
+                    conditionResult.condition.ringCount == 0 ||
+                    conditionResult.condition.targetCount == 0
+                ) return;
 
                 SetSettingsFile(settingsPath);
 
                 OnConditionStart?.Invoke(
+                    (conditionResult.condition.ringCount, conditionResult.condition.targetCount)
+                );
+                SpheresManager.Singleton.SpawnSpheres(
                     (conditionResult.condition.ringCount, conditionResult.condition.targetCount)
                 );
 
@@ -153,6 +160,7 @@ public class ServerManager : NetworkBehaviour
             actualAnswer.Item2
         );
 
+        ClientManager.Singleton.InitTrialRpc();
         OnTrialInit?.Invoke(new(
             conditionResult.condition.pos,
             conditionResult.condition.pov,

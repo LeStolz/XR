@@ -1,3 +1,4 @@
+using System;
 using Unity.Collections;
 using Unity.Networking.Transport;
 using UnityEngine;
@@ -102,7 +103,7 @@ public class SocketManager : MonoBehaviour
         }
     }
 
-    void LoadArMainScene()
+    void LoadArMainScene((int RingCount, int TargetCount) _)
     {
         for (int i = 0; i < connections.Length; i++)
         {
