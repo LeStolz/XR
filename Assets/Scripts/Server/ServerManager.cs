@@ -134,6 +134,7 @@ public class ServerManager : NetworkBehaviour
 
     public IEnumerator EndCondition(bool wait = true)
     {
+        SaveConditionResult();
         OnConditionEnd?.Invoke();
         if (wait) yield return new WaitForSeconds(5);
         NetworkManager.SceneManager.LoadScene("Connect", LoadSceneMode.Single);
@@ -145,7 +146,6 @@ public class ServerManager : NetworkBehaviour
 
         if (trialsLeft == 0)
         {
-            SaveConditionResult();
             ClientManager.Singleton.EndConditionRpc();
             StartCoroutine(EndCondition());
             return;

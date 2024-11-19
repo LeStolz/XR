@@ -25,7 +25,7 @@ public class SocketManager : MonoBehaviour
     {
         var networkSettings = new NetworkSettings();
         driver = driver.IsCreated ? driver : NetworkDriver.Create(networkSettings.WithNetworkConfigParameters(
-            disconnectTimeoutMS: 90000000
+            disconnectTimeoutMS: 60 * 1000
         ));
 
         var endpoint = NetworkEndPoint.AnyIpv4;

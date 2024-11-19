@@ -7,15 +7,20 @@ public struct LayoutDimensions
 {
 	public float initialHeight;
 	public float radius;
+	public float x;
+	public float z;
 	public List<ConditionalDimensions> conditionalDimensions;
 
 	public LayoutDimensions(
-		float initialHeight, float radius, List<ConditionalDimensions> conditionalDimensions
+		float initialHeight, float radius, List<ConditionalDimensions> conditionalDimensions,
+		float x, float z
 	)
 	{
 		this.initialHeight = initialHeight;
 		this.radius = radius;
 		this.conditionalDimensions = conditionalDimensions;
+		this.x = x;
+		this.z = z;
 	}
 }
 

@@ -12,15 +12,18 @@ class Util
 		return (ulong)(DateTime.UtcNow - epochStart).TotalMilliseconds;
 	}
 
-	public static void Shuffle<T>(IList<T> ts)
+	public static List<T> Shuffle<T>(IList<T> originalList)
 	{
-		var count = ts.Count;
+		var list = new List<T>(originalList);
+		var count = list.Count;
 		var last = count - 1;
 
 		for (var i = 0; i < last; ++i)
 		{
 			var r = UnityEngine.Random.Range(i, count);
-			(ts[r], ts[i]) = (ts[i], ts[r]);
+			(list[r], list[i]) = (list[i], list[r]);
 		}
+
+		return list;
 	}
 }

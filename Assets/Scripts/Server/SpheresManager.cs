@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -82,7 +83,7 @@ public class SpheresManager : NetworkBehaviour
 
     public Vector3 GetLowestRingOrigin()
     {
-        return new(0, startHeight, 0);
+        return new(layoutDimensionsServer.x, startHeight, layoutDimensionsServer.z);
     }
 
     [Rpc(SendTo.Everyone, RequireOwnership = false)]
@@ -101,7 +102,6 @@ public class SpheresManager : NetworkBehaviour
 
         if (NetworkManager.Singleton.IsServer)
         {
-            randomSpheresServer.Add(sphere);
             randomSpheresServer.Add(sphere);
         }
     }
@@ -146,8 +146,14 @@ public class SpheresManager : NetworkBehaviour
             }
         }
 
-        Util.Shuffle(randomSpheresServer);
+        var spheresFirst = Util.Shuffle(randomSpheresServer);
+        var spheresSecond = Util.Shuffle(randomSpheresServer);
+        randomSpheresServer.Clear();
+        randomSpheresServer.AddRange(spheresFirst);
+        randomSpheresServer.AddRange(spheresSecond);
         randomSpheresIndexServer = 0;
+
+        Debug.Log(string.Join(", ", randomSpheresServer.Select(sphere => sphere.name)));
     }
 
     public Tuple<string, Vector3> GetRandomSphere()
