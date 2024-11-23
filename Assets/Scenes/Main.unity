@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.47964904, g: 0.4698787, b: 0.4367271, a: 1}
+  m_IndirectSpecularColor: {r: 0.48089457, g: 0.47056735, b: 0.43683246, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3667,6 +3667,8 @@ MonoBehaviour:
   layoutDimensionsServer:
     initialHeight: 1
     radius: 0.65
+    x: 0.25
+    z: -1.4
     conditionalDimensions:
     - ringCount: 3
       targetCount: 4
@@ -6651,8 +6653,8 @@ MonoBehaviour:
   target: {fileID: 1521747956}
   mainCamera: {fileID: 269081337}
   topDownCamera: {fileID: 1585340377}
-  topDownImage: {fileID: 1672806304}
   mainImage: {fileID: 1482250101}
+  topDownImage: {fileID: 1672806304}
 --- !u!23 &2065683847
 MeshRenderer:
   m_ObjectHideFlags: 0
