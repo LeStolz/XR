@@ -146,14 +146,10 @@ public class SpheresManager : NetworkBehaviour
             }
         }
 
-        var spheresFirst = Util.Shuffle(randomSpheresServer);
-        var spheresSecond = Util.Shuffle(randomSpheresServer);
+        var newRandomSpheres = Util.Shuffle(randomSpheresServer);
         randomSpheresServer.Clear();
-        randomSpheresServer.AddRange(spheresFirst);
-        randomSpheresServer.AddRange(spheresSecond);
+        randomSpheresServer.AddRange(newRandomSpheres);
         randomSpheresIndexServer = 0;
-
-        Debug.Log(string.Join(", ", randomSpheresServer.Select(sphere => sphere.name)));
     }
 
     public Tuple<string, Vector3> GetRandomSphere()

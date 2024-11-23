@@ -93,7 +93,7 @@ public class ServerManager : NetworkBehaviour
             trialResults = new()
         };
 
-        trialsLeft = condition.ringCount * condition.targetCount * 2;
+        trialsLeft = condition.ringCount * condition.targetCount;
 
         NetworkManager.SceneManager.LoadScene("Main", LoadSceneMode.Single);
 
