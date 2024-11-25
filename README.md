@@ -1,4 +1,5 @@
 # XR
 
-- Make sure not occluded/occluding
 - Marker
+- Stop suddenly
+- CSV

@@ -22,7 +22,6 @@ public class ServerConnectionManager : MonoBehaviour
 		}
 
 		Singleton = this;
-		DontDestroyOnLoad(gameObject);
 	}
 
 	public void TryPingServer(string serverIp)

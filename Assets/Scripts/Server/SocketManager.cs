@@ -1,4 +1,3 @@
-using System;
 using Unity.Collections;
 using Unity.Networking.Transport;
 using UnityEngine;
@@ -7,6 +6,7 @@ public class SocketManager : MonoBehaviour
 {
     public static SocketManager Singleton { get; private set; }
     NetworkDriver driver;
+    NetworkPipeline pipeline;
     NativeList<NetworkConnection> connections;
 
     void Awake()
@@ -27,6 +27,10 @@ public class SocketManager : MonoBehaviour
         driver = driver.IsCreated ? driver : NetworkDriver.Create(networkSettings.WithNetworkConfigParameters(
             disconnectTimeoutMS: 60 * 1000
         ));
+        pipeline = driver.CreatePipeline(
+           typeof(FragmentationPipelineStage),
+           typeof(ReliableSequencedPipelineStage)
+        );
 
         var endpoint = NetworkEndPoint.AnyIpv4;
         endpoint.Port = 9000;
@@ -39,6 +43,8 @@ public class SocketManager : MonoBehaviour
         ServerManager.Singleton.OnConditionEnd += LoadArConnectScene;
         ServerManager.Singleton.OnConditionStart += LoadArMainScene;
         ServerManager.Singleton.OnTrialInit += InitArTrial;
+
+        Debug.developerConsoleVisible = true;
     }
 
     void Update()
@@ -97,7 +103,7 @@ public class SocketManager : MonoBehaviour
     {
         for (int i = 0; i < connections.Length; i++)
         {
-            driver.BeginSend(NetworkPipeline.Null, connections[i], out var writer);
+            driver.BeginSend(pipeline, connections[i], out var writer);
             writer.WriteFixedString128("LoadArConnectScene");
             driver.EndSend(writer);
         }
@@ -107,7 +113,7 @@ public class SocketManager : MonoBehaviour
     {
         for (int i = 0; i < connections.Length; i++)
         {
-            driver.BeginSend(NetworkPipeline.Null, connections[i], out var writer);
+            driver.BeginSend(pipeline, connections[i], out var writer);
             writer.WriteFixedString128("LoadArMainScene");
             driver.EndSend(writer);
         }
@@ -122,14 +128,14 @@ public class SocketManager : MonoBehaviour
 
             for (int s = 0; s < arConditionJson.Length; s += 100)
             {
-                driver.BeginSend(NetworkPipeline.Null, connections[i], out writer);
+                driver.BeginSend(pipeline, connections[i], out writer);
                 writer.WriteFixedString128(
                     $"StartInitArTrial {arConditionJson.Substring(s, Mathf.Min(100, arConditionJson.Length - s))}"
                 );
                 driver.EndSend(writer);
             }
 
-            driver.BeginSend(NetworkPipeline.Null, connections[i], out writer);
+            driver.BeginSend(pipeline, connections[i], out writer);
             writer.WriteFixedString128("EndInitArTrial");
             driver.EndSend(writer);
         }

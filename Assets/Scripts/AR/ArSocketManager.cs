@@ -11,6 +11,7 @@ public class ArSocketManager : MonoBehaviour
     static public ArSocketManager Singleton { get; private set; }
 
     NetworkDriver driver;
+    NetworkPipeline pipeline;
     NetworkConnection connection;
 
     void Awake()
@@ -27,6 +28,10 @@ public class ArSocketManager : MonoBehaviour
     void Start()
     {
         driver = driver.IsCreated ? driver : NetworkDriver.Create();
+        pipeline = driver.CreatePipeline(
+            typeof(FragmentationPipelineStage),
+            typeof(ReliableSequencedPipelineStage)
+        );
         connection = default;
 
         var endpoint = NetworkEndPoint.Parse("127.0.0.1", 9000);
@@ -56,7 +61,7 @@ public class ArSocketManager : MonoBehaviour
         {
             if (cmd == NetworkEvent.Type.Connect)
             {
-                driver.BeginSend(connection, out var writer);
+                driver.BeginSend(pipeline, connection, out var writer);
                 writer.WriteFixedString128("RegisterClientRpc AR");
                 driver.EndSend(writer);
             }
@@ -109,7 +114,7 @@ public class ArSocketManager : MonoBehaviour
 
     public void StartTrialRpc()
     {
-        driver.BeginSend(connection, out var writer);
+        driver.BeginSend(pipeline, connection, out var writer);
         writer.WriteFixedString128("StartTrialRpc");
         driver.EndSend(writer);
 
