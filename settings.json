@@ -1,7 +1,7 @@
 {
   "initialHeight": 1.0,
-  "x": 0.7,
-  "z": -1.4,
+  "x": 1.1,
+  "z": 0.45,
   "radius": 0.65,
   "conditionalDimensions": [
     { "ringCount": 3, "targetCount": 4, "gap": 0.5, "scale": 0.15 },

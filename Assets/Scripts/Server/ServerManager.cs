@@ -230,15 +230,14 @@ public class ServerManager : NetworkBehaviour
     {
         if (!NetworkManager.Singleton.IsServer) return;
 
-        string data = JsonUtility.ToJson(conditionResult);
         string path = StandaloneFileBrowser.SaveFilePanel(
             "Save Condition Result",
             "",
             DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"),
-            "json"
+            "csv"
         );
 
         File.CreateText(path).Dispose();
-        File.WriteAllText(path, data);
+        File.WriteAllText(path, Util.ResultToCSV(conditionResult));
     }
 }

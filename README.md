@@ -1,5 +1,3 @@
 # XR
 
-- Marker
-- Stop suddenly
-- CSV
+- Open form on tablet
