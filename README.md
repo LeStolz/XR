@@ -1,3 +1,3 @@
 # XR
 
-- Open form on tablet
+- Install app and open form on tablet
