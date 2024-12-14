@@ -3667,7 +3667,7 @@ MonoBehaviour:
   layoutDimensionsServer:
     initialHeight: 1
     radius: 0.65
-    x: 1.315
+    x: 0.865
     z: -1.325
     conditionalDimensions:
     - ringCount: 3

@@ -1,6 +1,7 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -106,7 +107,7 @@ public class SpheresManager : NetworkBehaviour
         }
     }
 
-    public void SpawnSpheres((int RingCount, int TargetCount) counts)
+    public async Task SpawnSpheres((int RingCount, int TargetCount) counts)
     {
         int ringCount = counts.RingCount;
         int targetCount = counts.TargetCount;
@@ -146,10 +147,54 @@ public class SpheresManager : NetworkBehaviour
             }
         }
 
-        var newRandomSpheres = Util.Shuffle(randomSpheresServer);
-        randomSpheresServer.Clear();
-        randomSpheresServer.AddRange(newRandomSpheres);
-        randomSpheresIndexServer = 0;
+        if (NetworkManager.Singleton.IsServer)
+        {
+            var TRIAL_PER_CONDITION_COUNT = ServerManager.Singleton.TRIAL_PER_CONDITION_COUNT;
+
+            var keyPrefix = $"{ringCount}_{targetCount}" +
+                $"_{GameManager.Singleton.posThumbs[GameManager.Singleton.posId].name}" +
+                $"_{GameManager.Singleton.povThumbs[GameManager.Singleton.povId].name}_";
+            keyPrefix = string.Concat(keyPrefix.Where(c => !char.IsWhiteSpace(c)));
+
+            var precalculatedSphereNames = await CloudSaveManager.Singleton.Load<List<string>>(
+                $"{keyPrefix}sphereNames"
+            );
+            var precalculatedSpheresIndex = await CloudSaveManager.Singleton.Load<int>(
+                $"{keyPrefix}spheresIndex"
+            );
+            var precalculatedAvgTrialCountPerTarget = await CloudSaveManager.Singleton.Load<float>(
+                $"{keyPrefix}avgTrialCountPerTarget"
+            );
+
+            if (precalculatedSphereNames == null || precalculatedSpheresIndex >= precalculatedSphereNames.Count)
+            {
+                var newRandomSpheres = Util.Shuffle(randomSpheresServer);
+                randomSpheresServer.Clear();
+                randomSpheresServer.AddRange(newRandomSpheres);
+
+                precalculatedSphereNames = randomSpheresServer.ConvertAll(
+                    sphere => sphere.name
+                );
+                precalculatedSpheresIndex = 0;
+
+                await CloudSaveManager.Singleton.Save($"{keyPrefix}spheresIndex", precalculatedSpheresIndex);
+                await CloudSaveManager.Singleton.Save($"{keyPrefix}sphereNames", precalculatedSphereNames);
+            }
+
+            var newRandomSphereNames = precalculatedSphereNames
+                .GetRange(precalculatedSpheresIndex, TRIAL_PER_CONDITION_COUNT)
+                .ConvertAll(name => randomSpheresServer.Find(sphere => sphere.name == name));
+            randomSpheresServer.Clear();
+            randomSpheresServer.AddRange(newRandomSphereNames);
+
+            randomSpheresIndexServer = 0;
+
+            await CloudSaveManager.Singleton.Save($"{keyPrefix}spheresIndex", precalculatedSpheresIndex + TRIAL_PER_CONDITION_COUNT);
+            await CloudSaveManager.Singleton.Save(
+                $"{keyPrefix}avgTrialCountPerTarget",
+                precalculatedAvgTrialCountPerTarget + 1f * TRIAL_PER_CONDITION_COUNT / targetCount / ringCount
+            );
+        }
     }
 
     public Tuple<string, Vector3> GetRandomSphere()

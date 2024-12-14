@@ -813,11 +813,11 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
-  cloudProjectId: 
+  cloudProjectId: 107807e2-17e4-4876-a134-46f372c360f1
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: 
-  organizationId: 
+  projectName: XR
+  organizationId: lepoopz
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   playerDataPath: 

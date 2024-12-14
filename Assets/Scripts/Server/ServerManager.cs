@@ -1,3 +1,6 @@
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,6 +14,7 @@ using SFB;
 
 public class ServerManager : NetworkBehaviour
 {
+    public readonly int TRIAL_PER_CONDITION_COUNT = 12;
     static public ServerManager Singleton { get; private set; }
 
     public Dictionary<ulong, string> ClientId_SpectatorId
@@ -93,7 +97,7 @@ public class ServerManager : NetworkBehaviour
             trialResults = new()
         };
 
-        trialsLeft = condition.ringCount * condition.targetCount;
+        trialsLeft = TRIAL_PER_CONDITION_COUNT;
 
         NetworkManager.SceneManager.LoadScene("Main", LoadSceneMode.Single);
 
@@ -101,7 +105,7 @@ public class ServerManager : NetworkBehaviour
         {
             setSceneManagerOnLoadComplete = true;
 
-            NetworkManager.SceneManager.OnLoadEventCompleted += (sceneName, loadSceneMode, _, _) =>
+            NetworkManager.SceneManager.OnLoadEventCompleted += async (sceneName, loadSceneMode, _, _) =>
             {
                 if (
                     sceneName != "Main" ||
@@ -114,7 +118,7 @@ public class ServerManager : NetworkBehaviour
                 OnConditionStart?.Invoke(
                     (conditionResult.condition.ringCount, conditionResult.condition.targetCount)
                 );
-                SpheresManager.Singleton.SpawnSpheres(
+                await SpheresManager.Singleton.SpawnSpheres(
                     (conditionResult.condition.ringCount, conditionResult.condition.targetCount)
                 );
 
@@ -207,7 +211,7 @@ public class ServerManager : NetworkBehaviour
         if (currentTrialResult.timestamp == 0) return;
 
         var spectatorAnswer = new SpectatorAnswer(
-            ClientId_SpectatorId[rpcParams.Receive.SenderClientId],
+            ClientId_SpectatorId.GetValueOrDefault(rpcParams.Receive.SenderClientId, "Test"),
             seat,
             answerId,
             answerPosition,
@@ -217,7 +221,7 @@ public class ServerManager : NetworkBehaviour
 
         currentTrialResult.spectatorAnswers.Add(spectatorAnswer);
 
-        if (currentTrialResult.spectatorAnswers.Count == ClientId_SpectatorId.Where(
+        if (currentTrialResult.spectatorAnswers.Count >= ClientId_SpectatorId.Where(
             kvp => kvp.Value != "AR"
         ).ToList().Count)
         {
@@ -241,3 +245,36 @@ public class ServerManager : NetworkBehaviour
         File.WriteAllText(path, Util.ResultToCSV(conditionResult));
     }
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(ServerManager))]
+class ServerManagerEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        var serverManager = (ServerManager)target;
+
+        if (serverManager == null) return;
+
+        Undo.RecordObject(serverManager, "Server Manager");
+
+        if (GUILayout.Button("Start Trial"))
+        {
+            serverManager.StartTrialRpc();
+        }
+
+        if (GUILayout.Button("Save Client Trial Answer"))
+        {
+            serverManager.SaveClientTrialAnswerRpc(
+                "center",
+                "0;0",
+                Vector3.zero,
+                100,
+                Util.GetTimeSinceEpoch()
+            );
+        }
+    }
+}
+#endif
