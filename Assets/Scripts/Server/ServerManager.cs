@@ -136,21 +136,25 @@ public class ServerManager : NetworkBehaviour
         SpheresManager.Singleton.layoutDimensionsServer = JsonUtility.FromJson<LayoutDimensions>(settingsData);
     }
 
-    public IEnumerator EndCondition(bool wait = true)
+    public IEnumerator EndCondition(bool notForced = true)
     {
         SaveConditionResult();
         OnConditionEnd?.Invoke();
-        if (wait) yield return new WaitForSeconds(5);
+        if (notForced)
+        {
+            yield return new WaitForSeconds(5);
+        }
         NetworkManager.SceneManager.LoadScene("Connect", LoadSceneMode.Single);
     }
 
-    void InitTrial()
+    async void InitTrial()
     {
         if (!NetworkManager.Singleton.IsServer) return;
 
         if (trialsLeft == 0)
         {
             ClientManager.Singleton.EndConditionRpc();
+            await SpheresManager.Singleton.UpdatePrecalculatedSpheres();
             StartCoroutine(EndCondition());
             return;
         }
@@ -159,7 +163,7 @@ public class ServerManager : NetworkBehaviour
         var actualAnswer = SpheresManager.Singleton.GetRandomSphere();
 
         currentTrialResult = new(
-            Util.GetTimeSinceEpoch(),
+            GetTimeSinceEpoch(),
             actualAnswer.Item1,
             actualAnswer.Item2
         );
@@ -188,14 +192,36 @@ public class ServerManager : NetworkBehaviour
         ));
     }
 
+    static ulong GetTimeSinceEpoch()
+    {
+        DateTime epochStart = new(2024, 12, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        return (ulong)(DateTime.UtcNow - epochStart).TotalMilliseconds;
+    }
+
     [Rpc(SendTo.Server, RequireOwnership = false)]
     public void StartTrialRpc()
     {
         if (!NetworkManager.Singleton.IsServer) return;
 
-        currentTrialResult.timestamp = Util.GetTimeSinceEpoch();
+        currentTrialResult.timestamp = GetTimeSinceEpoch();
 
         ClientManager.Singleton.StartTrialRpc();
+    }
+
+    [Rpc(SendTo.Server, RequireOwnership = false)]
+    public void SaveClientTrialTimestampRpc(RpcParams rpcParams = default)
+    {
+        var spectatorAnswer = new SpectatorAnswer(
+            ClientId_SpectatorId.GetValueOrDefault(rpcParams.Receive.SenderClientId, "Test"),
+                "center",
+                "0;0",
+                Vector3.zero,
+                100,
+                GetTimeSinceEpoch()
+        );
+
+        currentTrialResult.spectatorAnswers.Add(spectatorAnswer);
     }
 
     [Rpc(SendTo.Server, RequireOwnership = false)]
@@ -204,30 +230,49 @@ public class ServerManager : NetworkBehaviour
         string answerId,
         Vector3 answerPosition,
         int confidence,
-        ulong timestamp,
         RpcParams rpcParams = default
     )
     {
-        if (currentTrialResult.timestamp == 0) return;
-
-        var spectatorAnswer = new SpectatorAnswer(
-            ClientId_SpectatorId.GetValueOrDefault(rpcParams.Receive.SenderClientId, "Test"),
-            seat,
-            answerId,
-            answerPosition,
-            confidence,
-            timestamp
-        );
-
-        currentTrialResult.spectatorAnswers.Add(spectatorAnswer);
-
-        if (currentTrialResult.spectatorAnswers.Count >= ClientId_SpectatorId.Where(
-            kvp => kvp.Value != "AR"
-        ).ToList().Count)
+        IEnumerator SaveClientTrialAnswer()
         {
-            conditionResult.trialResults.Add(currentTrialResult);
-            InitTrial();
-        }
+            yield return new WaitUntil(() =>
+            {
+                try
+                {
+                    var spectatorAnswer = currentTrialResult.spectatorAnswers.Find(
+                        sa => sa.spectatorId == ClientId_SpectatorId.GetValueOrDefault(rpcParams.Receive.SenderClientId, "Test")
+                    );
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+
+            var spectatorAnswer = currentTrialResult.spectatorAnswers.Find(
+                sa => sa.spectatorId == ClientId_SpectatorId.GetValueOrDefault(rpcParams.Receive.SenderClientId, "Test")
+            );
+
+            spectatorAnswer = new SpectatorAnswer(
+                ClientId_SpectatorId.GetValueOrDefault(rpcParams.Receive.SenderClientId, "Test"),
+                seat,
+                answerId,
+                answerPosition,
+                confidence,
+                spectatorAnswer.timestamp
+            );
+
+            if (currentTrialResult.spectatorAnswers.Count >= ClientId_SpectatorId.Where(
+                kvp => kvp.Value != "AR"
+            ).ToList().Count)
+            {
+                conditionResult.trialResults.Add(currentTrialResult);
+                InitTrial();
+            }
+        };
+
+        StartCoroutine(SaveClientTrialAnswer());
     }
 
     void SaveConditionResult()
@@ -260,19 +305,15 @@ class ServerManagerEditor : Editor
 
         Undo.RecordObject(serverManager, "Server Manager");
 
-        if (GUILayout.Button("Start Trial"))
+        if (GUILayout.Button("Skip Trial"))
         {
             serverManager.StartTrialRpc();
-        }
-
-        if (GUILayout.Button("Save Client Trial Answer"))
-        {
+            serverManager.SaveClientTrialTimestampRpc();
             serverManager.SaveClientTrialAnswerRpc(
                 "center",
                 "0;0",
                 Vector3.zero,
-                100,
-                Util.GetTimeSinceEpoch()
+                100
             );
         }
     }

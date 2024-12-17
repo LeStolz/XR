@@ -7,15 +7,12 @@ public class ClientManager : NetworkBehaviour
     public static ClientManager Singleton { get; private set; }
 
     [SerializeField] GameObject EvaluationScene;
-    [SerializeField] GameObject EvaluationRotator;
     [SerializeField] GameObject EvaluationSyncingUI;
     [SerializeField] GameObject EvaluationWellDoneUI;
 
     public event Action OnTrialInit;
     public event Action OnConditionEnd;
     public event Action OnConfidenceSelect;
-
-    ulong timestamp;
 
     void Awake()
     {
@@ -62,7 +59,7 @@ public class ClientManager : NetworkBehaviour
         if (NetworkManager.Singleton.IsServer) return;
         if (SpheresManager.Singleton.GetSelectedSphere() == null) return;
 
-        timestamp = Util.GetTimeSinceEpoch();
+        ServerManager.Singleton.SaveClientTrialTimestampRpc();
 
         EvaluationScene.SetActive(false);
         EvaluationSyncingUI.SetActive(false);
@@ -75,8 +72,7 @@ public class ClientManager : NetworkBehaviour
             GameManager.Singleton.playerSeat,
             SpheresManager.Singleton.GetSelectedSphere().Item1,
             SpheresManager.Singleton.GetSelectedSphere().Item2,
-            selectedButtonIndex,
-            timestamp
+            selectedButtonIndex
         );
     }
 }
