@@ -214,11 +214,11 @@ public class ServerManager : NetworkBehaviour
     {
         var spectatorAnswer = new SpectatorAnswer(
             ClientId_SpectatorId.GetValueOrDefault(rpcParams.Receive.SenderClientId, "Test"),
-                "center",
-                "0;0",
-                Vector3.zero,
-                100,
-                GetTimeSinceEpoch()
+            "center",
+            "0;0",
+            Vector3.zero,
+            -100,
+            GetTimeSinceEpoch()
         );
 
         currentTrialResult.spectatorAnswers.Add(spectatorAnswer);
@@ -239,7 +239,7 @@ public class ServerManager : NetworkBehaviour
             {
                 try
                 {
-                    var spectatorAnswer = currentTrialResult.spectatorAnswers.Find(
+                    currentTrialResult.spectatorAnswers.Find(
                         sa => sa.spectatorId == ClientId_SpectatorId.GetValueOrDefault(rpcParams.Receive.SenderClientId, "Test")
                     );
                     return true;
@@ -250,22 +250,27 @@ public class ServerManager : NetworkBehaviour
                 }
             });
 
-            var spectatorAnswer = currentTrialResult.spectatorAnswers.Find(
+            var spectatorAnswerIndex = currentTrialResult.spectatorAnswers.FindIndex(
                 sa => sa.spectatorId == ClientId_SpectatorId.GetValueOrDefault(rpcParams.Receive.SenderClientId, "Test")
             );
 
-            spectatorAnswer = new SpectatorAnswer(
+            currentTrialResult.spectatorAnswers[spectatorAnswerIndex] = new SpectatorAnswer(
                 ClientId_SpectatorId.GetValueOrDefault(rpcParams.Receive.SenderClientId, "Test"),
                 seat,
                 answerId,
                 answerPosition,
                 confidence,
-                spectatorAnswer.timestamp
+                currentTrialResult.spectatorAnswers[spectatorAnswerIndex].timestamp
             );
 
-            if (currentTrialResult.spectatorAnswers.Count >= ClientId_SpectatorId.Where(
-                kvp => kvp.Value != "AR"
-            ).ToList().Count)
+            if (
+                currentTrialResult.spectatorAnswers
+                    .Where(sa => sa.confidence != -100)
+                    .ToList().Count >=
+                ClientId_SpectatorId
+                    .Where(kvp => kvp.Value != "AR")
+                    .ToList().Count
+            )
             {
                 conditionResult.trialResults.Add(currentTrialResult);
                 InitTrial();
