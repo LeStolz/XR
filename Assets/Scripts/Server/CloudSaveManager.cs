@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Unity.Services.Authentication;
 using Unity.Services.CloudSave;
@@ -22,6 +23,13 @@ public class CloudSaveManager : MonoBehaviour
 
 		await UnityServices.InitializeAsync();
 		await AuthenticationService.Instance.SignInAnonymouslyAsync();
+	}
+
+	public async Task<IEnumerable<string>> GetAllKeys()
+	{
+		var keys = await CloudSaveService.Instance.Data.Player.ListAllKeysAsync();
+
+		return keys.Select(key => key.Key);
 	}
 
 	public async Task Save(string key, object value)

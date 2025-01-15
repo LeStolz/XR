@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Collections;
 using SFB;
+using Newtonsoft.Json;
 
 public class ServerManager : NetworkBehaviour
 {
@@ -275,7 +276,7 @@ public class ServerManager : NetworkBehaviour
                 conditionResult.trialResults.Add(currentTrialResult);
                 InitTrial();
             }
-        };
+        }
 
         StartCoroutine(SaveClientTrialAnswer());
     }
@@ -300,7 +301,7 @@ public class ServerManager : NetworkBehaviour
 [CustomEditor(typeof(ServerManager))]
 class ServerManagerEditor : Editor
 {
-    public override void OnInspectorGUI()
+    public override async void OnInspectorGUI()
     {
         base.OnInspectorGUI();
 
@@ -320,6 +321,60 @@ class ServerManagerEditor : Editor
                 Vector3.zero,
                 100
             );
+        }
+
+        if (GUILayout.Button("Save Precalculated Conditions From Cloud To File"))
+        {
+            string path = StandaloneFileBrowser.OpenFolderPanel(
+                "Save Conditions To Folder",
+                "",
+                false
+            )[0];
+
+            var keys = await CloudSaveManager.Singleton.GetAllKeys();
+
+            foreach (var key in keys)
+            {
+                var data = await CloudSaveManager.Singleton.Load<List<string>>(key);
+                File.WriteAllText($"{path}/{key}.json", JsonConvert.SerializeObject(data));
+            }
+        }
+
+        if (GUILayout.Button("Save Precalculated Conditions"))
+        {
+            string path = StandaloneFileBrowser.OpenFilePanel(
+                "Open Precalculated Conditions",
+                "",
+                "json",
+                false
+            )[0];
+
+            string dataJson = File.ReadAllText(path);
+            var data = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(dataJson);
+
+            foreach (var key in data)
+            {
+                await CloudSaveManager.Singleton.Save(key.Key, key.Value);
+            }
+        }
+
+        if (GUILayout.Button("Generate spheres"))
+        {
+            var ringCount = 6;
+            var targetCount = 8;
+            var sphereNames = new List<string>();
+
+            for (int i = 0; i < ringCount; i++)
+            {
+                for (int j = 0; j < targetCount; j++)
+                {
+                    sphereNames.Add($"{i};{j}");
+                }
+            }
+            sphereNames = Util.Shuffle(sphereNames);
+
+            var s = JsonConvert.SerializeObject(sphereNames);
+            Debug.Log(s);
         }
     }
 }

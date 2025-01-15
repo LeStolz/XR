@@ -146,30 +146,21 @@ public class SpheresManager : NetworkBehaviour
         {
             var keyPrefix = GetSphereKeyPrefix(ringCount, targetCount);
 
-            var precalculatedSphereNames = await CloudSaveManager.Singleton.Load<List<string>>(
-                $"{keyPrefix}sphereNames"
-            );
-            var precalculatedSpheresIndex = await CloudSaveManager.Singleton.Load<int>(
+            var precalculatedSpheresIndex = await FileSaveManager.Singleton.Load<int>(
                 $"{keyPrefix}spheresIndex"
             );
-            var precalculatedAvgTrialCountPerTarget = await CloudSaveManager.Singleton.Load<float>(
+            var precalculatedSphereNames = await FileSaveManager.Singleton.Load<List<string>>(
+                $"{keyPrefix}{precalculatedSpheresIndex}"
+            );
+            var precalculatedAvgTrialCountPerTarget = await FileSaveManager.Singleton.Load<float>(
                 $"{keyPrefix}avgTrialCountPerTarget"
             );
 
-            if (precalculatedSphereNames == null)
-            {
-                await UpdatePrecalculatedSpheres();
+            Debug.Log($"{keyPrefix}{precalculatedSpheresIndex}");
 
-                precalculatedSphereNames = randomSpheresServer.ConvertAll(
-                    sphere => sphere.name
-                );
-                precalculatedSpheresIndex = 0;
-            }
-
-            var newRandomSphereNames = precalculatedSphereNames
-                .GetRange(precalculatedSpheresIndex, ServerManager.Singleton.TRIAL_PER_CONDITION_COUNT)
+            var newRandomSpheres = precalculatedSphereNames
                 .ConvertAll(name => spheres.Find(sphere => sphere.name == name));
-            randomSpheresServer = newRandomSphereNames;
+            randomSpheresServer = newRandomSpheres;
 
             randomSpheresIndexServer = 0;
         }
@@ -190,35 +181,24 @@ public class SpheresManager : NetworkBehaviour
         var TRIAL_PER_CONDITION_COUNT = ServerManager.Singleton.TRIAL_PER_CONDITION_COUNT;
         var keyPrefix = GetSphereKeyPrefix(ringCount, targetCount);
 
-        var precalculatedSphereNames = await CloudSaveManager.Singleton.Load<List<string>>(
-            $"{keyPrefix}sphereNames"
-        );
-        var precalculatedSpheresIndex = await CloudSaveManager.Singleton.Load<int>(
+        var precalculatedSpheresIndex = await FileSaveManager.Singleton.Load<int>(
             $"{keyPrefix}spheresIndex"
         );
-        var precalculatedAvgTrialCountPerTarget = await CloudSaveManager.Singleton.Load<float>(
+        precalculatedSpheresIndex += 1;
+        var precalculatedSphereNames = await FileSaveManager.Singleton.Load<List<string>>(
+            $"{keyPrefix}{precalculatedSpheresIndex}"
+        );
+        var precalculatedAvgTrialCountPerTarget = await FileSaveManager.Singleton.Load<float>(
             $"{keyPrefix}avgTrialCountPerTarget"
         );
-        var precalculatedSphereNamesWasNull = precalculatedSphereNames == null;
-        precalculatedSpheresIndex += TRIAL_PER_CONDITION_COUNT;
 
-        if (precalculatedSphereNames == null || precalculatedSpheresIndex >= precalculatedSphereNames.Count)
+        if (precalculatedSphereNames == null)
         {
-            randomSpheresServer = Util.Shuffle(spheres);
-
-            precalculatedSphereNames = randomSpheresServer.ConvertAll(
-                sphere => sphere.name
-            );
             precalculatedSpheresIndex = 0;
-
-            await CloudSaveManager.Singleton.Save($"{keyPrefix}spheresIndex", precalculatedSpheresIndex);
-            await CloudSaveManager.Singleton.Save($"{keyPrefix}sphereNames", precalculatedSphereNames);
         }
 
-        if (precalculatedSphereNamesWasNull) return;
-
-        await CloudSaveManager.Singleton.Save($"{keyPrefix}spheresIndex", precalculatedSpheresIndex);
-        await CloudSaveManager.Singleton.Save(
+        await FileSaveManager.Singleton.Save($"{keyPrefix}spheresIndex", precalculatedSpheresIndex);
+        await FileSaveManager.Singleton.Save(
             $"{keyPrefix}avgTrialCountPerTarget",
             precalculatedAvgTrialCountPerTarget + 1f * TRIAL_PER_CONDITION_COUNT / targetCount / ringCount
         );
