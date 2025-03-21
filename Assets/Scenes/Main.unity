@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.47964904, g: 0.4698787, b: 0.4367271, a: 1}
+  m_IndirectSpecularColor: {r: 0.48089457, g: 0.47056735, b: 0.43683246, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3673,7 +3673,7 @@ MonoBehaviour:
     - ringCount: 3
       targetCount: 4
       gap: 0.5
-      scale: 0.15
+      scale: 0.1
     - ringCount: 3
       targetCount: 8
       gap: 0.5
@@ -3681,7 +3681,7 @@ MonoBehaviour:
     - ringCount: 6
       targetCount: 4
       gap: 0.25
-      scale: 0.15
+      scale: 0.1
     - ringCount: 6
       targetCount: 8
       gap: 0.25
